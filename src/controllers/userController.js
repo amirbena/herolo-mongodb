@@ -9,7 +9,7 @@ const signup = async (req, res) => {
         if (result === "User is exists") return res.status(StatusCodes.CONFLICT).send(result);
         const { token, user } = result;
         res.setHeader("Authorization", token);
-        res.send(`Succeed to signup a user`);
+        res.send(`Succeed to signup a ${user.fullName}`);
     } catch (ex) {
         return hasInternalError(res, ex)
     }

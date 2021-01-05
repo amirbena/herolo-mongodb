@@ -19,9 +19,12 @@ const manipulatePopulatedMessage = message => {
     const pureMessage = manipulateUserAttributesAtMessage(message._doc);
     return makeDateAsLocaleString(pureMessage);
 }
-/// PUT RECEIVER NAME- IT'S SUPPOST TO BE ID, BUT IT'S EASY FOR YOUR TEST
+
+
+
+
 /**
- * 
+ *  PUT RECEIVER NAME- IT'S SUPPOST TO BE ID, BUT IT'S EASY FOR YOUR TEST
  * @param {string} senderName 
  * @param {string} receiverName 
  * @param {string} subject 
@@ -67,6 +70,8 @@ const getAllUnreadMessagesSpecificUser = async userId => {
     messages = messages.map(message => manipulatePopulatedMessage(message));
     return messages;
 }
+
+//Assume read message as receiver
 
 const readMessage = async (id, receiverId) => {
     let message = await MessageModel.findById(id).populate("sender").populate("receiver").exec();

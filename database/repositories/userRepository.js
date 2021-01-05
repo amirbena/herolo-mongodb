@@ -18,7 +18,6 @@ const createUser = async ({ fullName, password }) => {
         fullName,
         password
     }).save();
-    console.log("User", user);
     const token = await genToken(user);
     return { token, user };
 }
