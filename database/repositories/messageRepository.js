@@ -6,6 +6,20 @@ const makeDateAsLocaleString = message => {
     creationDate = new Date(creationDate).toLocaleString();
     return { ...message, creationDate };
 }
+
+
+const manipulateUserAttributesAtMessage = pureMessage => {
+    const newMessage = pureMessage;
+    newMessage.sender = newMessage.sender.fullName;
+    newMessage.receiver = newMessage.receiver.fullName;
+    delete newMessage.__v;
+    return newMessage;
+}
+const manipulatePopulatedMessage = message => {
+    const pureMessage = manipulateUserAttributesAtMessage(message._doc);
+    return makeDateAsLocaleString(pureMessage);
+}
+/// PUT RECEIVER NAME- IT'S SUPPOST TO BE ID, BUT IT'S EASY FOR YOUR TEST
 /**
  * 
  * @param {string} senderName 
@@ -14,14 +28,11 @@ const makeDateAsLocaleString = message => {
  * @param {string} message 
  * @param {Date} creationDate 
  */
-
-/// PUT RECEIVER NAME- IT'S SUPPOST TO BE ID, BUT IT'S EASY FOR YOUR TEST
 const createMessage = async (sender, receiverName, subject, message, creationDate = new Date) => {
     let receiver = await UserModel.findOne({ fullName: receiverName }).exec();
     if (!receiver) return "Receiver not found";
     receiver = receiver._id
 
-    console.log("receiverId", receiverId);
     let createdMessage = await new MessageModel({
         sender,
         receiver,
@@ -29,8 +40,8 @@ const createMessage = async (sender, receiverName, subject, message, creationDat
         message,
         creationDate
     }).save();
-    createdMessage = await createdMessage.populate("sender").populate("reciever").execPopulate();
-    return makeDateAsLocaleString(createdMessage)
+    createdMessage = await createdMessage.populate("sender").populate("receiver").execPopulate();
+    return manipulatePopulatedMessage(createdMessage);
 }
 /**
  * 
@@ -40,8 +51,8 @@ const createMessage = async (sender, receiverName, subject, message, creationDat
 // Assume the sent message& recieved messages
 const getAllMessagesSpecificUser = async userId => {
     let messages = await MessageModel.find({ $or: [{ sender: userId }, { receiver: userId }] }).
-        populate("sender", "fullName").populate("receiver", "fullName").exec();
-    messages = messages.map(message => makeDateAsLocaleString(message));
+        populate("sender").populate("receiver").exec();
+    messages = messages.map(message => manipulatePopulatedMessage(message));
     return messages;
 }
 /**
@@ -52,22 +63,23 @@ const getAllMessagesSpecificUser = async userId => {
 // Assume the  recieved messages
 const getAllUnreadMessagesSpecificUser = async userId => {
     let messages = await MessageModel.find({ receiver: userId, isRead: false }).
-        populate("sender", "fullName").populate("receiver", "fullName").exec();
-    messages = messages.map(message => makeDateAsLocaleString(message));
+        populate("sender").populate("receiver").exec();
+    messages = messages.map(message => manipulatePopulatedMessage(message));
     return messages;
 }
 
-const readMessage = async (_id, receiverId) => {
-    let message = await MessageModel.findById(_id).populate("sender", "fullName").populate("receiver", "fullName").exec();
+const readMessage = async (id, receiverId) => {
+    let message = await MessageModel.findById(id).populate("sender").populate("receiver").exec();
     if (!message) return "Message not found";
-    if (message.receiverId !== receiverId) return "You're not allowed to read message, only reciever user";
+
+    if (String(message.receiver._id) !== receiverId) return "You're not allowed to read message, only receiver user";
     message.isRead = true;
     await message.save();
-    return makeDateAsLocaleString(message);
+    return manipulatePopulatedMessage(message);
 }
 
 const deleteMessage = async (_id, userId) => {
-    return await MessageModel.findOne({ _id, $or: [{ receiver: userId }, { sender: userId }] }).remove().exec();
+    return await MessageModel.deleteOne({ _id, $or: [{ receiver: userId }, { sender: userId }] }).exec();
 }
 
 

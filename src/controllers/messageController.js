@@ -4,12 +4,14 @@ const { StatusCodes } = require('http-status-codes');
 const hasInternalError = require('../others/hasInternalError');
 
 
-//Logged User
+///ALL REQUESTS IN THIS MODULE ARE AUTHENTICATED (LOG IN & TAKE TOKEN FROM RESPONSE.AUTHORIZATION AND PUT IT AS BEARER TOKEN)
+
+
 const sendMessage = async (req, res) => {
-    const { id } = req.user;
+    const { _id: senderId } = req.user;
     try {
         const { receiverName, subject, message } = req.body;
-        const createdMessage = await MessageRepository.createMessage(id, receiverName, subject, message, new Date());
+        const createdMessage = await MessageRepository.createMessage(senderId, receiverName, subject, message, new Date());
         if (createdMessage === "Receiver not found") res.status(StatusCodes.NOT_FOUND).send(message);
         return res.json({ message: createdMessage, result: "Message has sent to reciever" });
     } catch (ex) {
@@ -19,9 +21,9 @@ const sendMessage = async (req, res) => {
 
 
 const getAllMessagesForLoggedUser = async (req, res) => {
-    const { id } = req.user;
+    const { _id: userId } = req.user;
     try {
-        const messages = await MessageRepository.getAllMessagesSpecificUser(id);
+        const messages = await MessageRepository.getAllMessagesSpecificUser(userId);
         return res.json({ messages });
     } catch (ex) {
         return hasInternalError(res, ex)
@@ -30,9 +32,9 @@ const getAllMessagesForLoggedUser = async (req, res) => {
 
 
 const getAllUnreadMessagesForLoggedUser = async (req, res) => {
-    const { id } = req.user;
+    const { _id: userId } = req.user;
     try {
-        const unreadMessages = await MessageRepository.getAllUnreadMessagesSpecificUser(id);
+        const unreadMessages = await MessageRepository.getAllUnreadMessagesSpecificUser(userId);
         return res.json({ unreadMessages });
     } catch (ex) {
         return hasInternalError(res, ex)
@@ -42,11 +44,11 @@ const getAllUnreadMessagesForLoggedUser = async (req, res) => {
 
 const readMessage = async (req, res) => {
     const { id } = req.params;
-    const { id: receiverId } = req.user;
+    const { _id: receiverId } = req.user;
     try {
         const message = await MessageRepository.readMessage(id, receiverId);
         if (message === "Message not found") return res.status(StatusCodes.NOT_FOUND).send(message);
-        if (message === "You're not allowed to read message, only receiver user") return res.status(StatusCodes.FORBIDDEN).send(result);
+        if (message === "You're not allowed to read message, only receiver user") return res.status(StatusCodes.FORBIDDEN).send(message);
         return res.json({ message });
     } catch (ex) {
         return hasInternalError(res, ex)
@@ -55,10 +57,10 @@ const readMessage = async (req, res) => {
 
 const deleteMessage = async (req, res) => {
     const { id } = req.params;
-    const { id: userId } = req.user;
+    const { _id: userId } = req.user;
     try {
-        const result = await MessageRepository.deleteMessage(id,userId);
-        if (!result) return res.status(StatusCodes.NOT_FOUND).send("Message not found between user conversations");
+        const result = await MessageRepository.deleteMessage(id, userId);
+        if (!result.n) return res.status(StatusCodes.NOT_FOUND).send("Message not found between user conversations");  // n means how much rows effected 
         return res.send("Deleted Message");
     } catch (ex) {
         return hasInternalError(res, ex)
