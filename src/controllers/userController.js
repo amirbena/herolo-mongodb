@@ -6,7 +6,7 @@ const hasInternalError = require('../others/hasInternalError');
 const signup = async (req, res) => {
     try {
         const result = await UserRepository.createUser(req.body);
-        if (result === "User is exists") return res.status(StatusCodes.CONFLICT).send(result);
+        if (result === "exists") return res.status(StatusCodes.CONFLICT).send("Full Name is unique, please type other full name");
         const { token, user } = result;
         res.setHeader("Authorization", token);
         res.send(`Succeed to signup a ${user.fullName}`);

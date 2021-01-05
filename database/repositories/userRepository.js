@@ -13,7 +13,7 @@ const genToken = async ({ _id, fullName }) => {
  */
 const createUser = async ({ fullName, password }) => {
     const existedUser = await UserModel.findOne({ fullName }).exec();
-    if (existedUser) return "User is exists";
+    if (existedUser) return "exists";
     const user = await new UserModel({
         fullName,
         password
