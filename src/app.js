@@ -17,6 +17,9 @@ app.use(bodyParser.json());
 app.use('/users', routes.UserRoutes)
 app.use('/messages', routes.MessageRoutes);
 
+app.get('/', (req, res) => {
+    res.send("Wellcome to my Heroku app, please use /users & /message to enjoy misson's API")
+})
 
 const PORT = process.env.PORT || 4040;
 
