@@ -31,7 +31,7 @@ const manipulatePopulatedMessage = message => {
  * @param {string} message 
  * @param {Date} creationDate 
  */
-const createMessage = async (sender, receiverName, subject, message, creationDate = new Date) => {
+const createMessage = async (sender, receiverName, subject, message, creationDate = new Date()) => {
     let receiver = await UserModel.findOne({ fullName: receiverName }).exec();
     if (!receiver) return "Receiver not found";
     receiver = receiver._id
